@@ -2,7 +2,10 @@
 const puppeteer = require('puppeteer');
 
 // S e t   S u b r e d d i t   f r o m   i n d e x . j s 
+const REDDIT_URL = `https:old.reddit.com/`;
 const SUBREDDIT_URL = (reddit) => `https://old.reddit.com/r/${reddit}/`;
+const SUBREDDIT_SUBMIT_TEXT_URL = (reddit) => `https://old.reddit.com/r/${reddit}/submit?selftext=true`;
+const SUBREDDIT_SUBMIT_LINK_URL = (reddit) => `https://old.reddit.com/r/${reddit}/submit`;
 
 // A P I
 const self = {
@@ -19,8 +22,94 @@ const self = {
 
     self.page = await self.browser.newPage();
 
-    // Go to subreddit
+    // G o  t o  s u b r e d d i t
     await self.page.goto(SUBREDDIT_URL(reddit), {waitUntil: 'networkidle0'});
+  },
+
+  login: async (username, password) => {
+    //'#login_login-main > input[name="user"]'
+    // await self.page.goto('https://old.reddit.com', {waitUntil: 'networkidle0'});
+    //let uname =await self.page.$('#login_login-main > input[name="user"]');
+    await self.page.type('#login_login-main > input[name="user"]', username, {delay: 40})
+    //uname.keyboard.type(username);
+    //let pass = await self.page.$('#login_login-main > input[name="passwd"]');
+    await self.page.type('#login_login-main > input[name="passwd"]', password, {delay: 40})
+    //pass.keyboard.type(password);
+    // #login_login-main > div.submit > button
+    butt = await self.page.$('#login_login-main > div.submit > button');
+    await butt.click();
+
+  },
+
+  // L o g o u t
+  logout: async () => {
+    // '#login_login-main > div.submit > button[class="btn"'
+  },
+
+  // U p v o t e 
+  vote: async (subreddit, type = 'upvote', nr = 1) => {
+
+    // G o  t o  s u b r e d d i t
+    await self.page.goto(SUBREDDIT_URL(subreddit), {waitUntil: 'networkidle0'});
+    
+    // I t e r a t e   o v e r   p o s t s
+    let elements = await self.page.$$('#siteTable > div[class*="thing"]');
+    // let results = [];
+    let totalVotes = 0;
+
+    for(let element of elements) {
+
+      if(totalVotes > nr) break;
+      
+      let button = null;
+
+      switch(type) {
+
+        case 'upvote':
+          
+          button = await element.$('div.arrow.up.login-required.access-required');
+
+        break;
+
+        case 'downvote':
+
+          button = await element.$('div.arrow.up.login-required.access-required');
+
+        break;
+          
+      }
+
+      await button.click();
+      totalVotes++;
+
+    }
+  },
+
+  // P o s t   t o   S u b R e d d i t
+  post: async (subreddit, data = {}) => {
+
+    switch(data.type) {
+
+      case 'text':
+        
+        await self.page.goto(SUBREDDIT_SUBMIT_TEXT_URL(subreddit), {waitUntil: 'networkidle0'});
+        
+        // F i l l   I n p u t s
+        await self.page.type('#title-field > div > textarea', data.title);
+        await self.page.type('#title-field > div > textarea', data.text);
+
+      break;
+
+      case 'link':
+        
+        await self.page.goto(SUBREDDIT_SUBMIT_LINK_URL(subreddit), {waitUntil: 'networkidle0'});
+        
+        // F i l l   I n p u t s
+        await self.page.type('#url, data.url');
+        await self.page.type('textarea[name="title"], data.title');
+
+      break;
+    }
   },
 
   // S c r a p e  t h e  S u b R e d d i t
