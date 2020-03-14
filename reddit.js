@@ -27,15 +27,11 @@ const self = {
   },
 
   login: async (username, password) => {
-    //'#login_login-main > input[name="user"]'
-    // await self.page.goto('https://old.reddit.com', {waitUntil: 'networkidle0'});
-    //let uname =await self.page.$('#login_login-main > input[name="user"]');
+
     await self.page.type('#login_login-main > input[name="user"]', username, {delay: 40})
-    //uname.keyboard.type(username);
-    //let pass = await self.page.$('#login_login-main > input[name="passwd"]');
+
     await self.page.type('#login_login-main > input[name="passwd"]', password, {delay: 40})
-    //pass.keyboard.type(password);
-    // #login_login-main > div.submit > button
+
     butt = await self.page.$('#login_login-main > div.submit > button');
     await butt.click();
 
